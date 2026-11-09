@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1
+
+- Web adapter: apply the device metrics before navigation, enable focus
+  emulation, and start the screencast only after the load event. This fixes
+  NSH web apps that failed to load their browser facade.
+- Web adapter: launch Chrome with `--disable-gpu`, a desktop-sized 1280x800
+  viewport, and a fixed window for the pane.
+
 ## 0.1.0
 
 - iOS adapter: headless CoreSimulator IOSurface frames and Indigo HID input.

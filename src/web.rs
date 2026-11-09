@@ -22,7 +22,6 @@ enum WebInput {
     Key { key: String, code: String, vk: i64 },
     Navigate(String),
     Eval(String),
-    Viewport { width: usize, height: usize },
 }
 
 pub struct Web {
@@ -105,6 +104,7 @@ fn launch_chrome(chrome: &str, profile: &Path, size: (usize, usize)) -> Result<C
     let child = Command::new(chrome)
         .args([
             "--headless=new",
+            "--disable-gpu",
             "--remote-debugging-port=0",
             "--no-first-run",
             "--no-default-browser-check",
@@ -114,9 +114,9 @@ fn launch_chrome(chrome: &str, profile: &Path, size: (usize, usize)) -> Result<C
             "--mute-audio",
             "--hide-scrollbars",
             "--force-device-scale-factor=1",
-            "--window-size=1280,800",
             "about:blank",
         ])
+        .arg(format!("--window-size={},{}", size.0, size.1))
         .arg(format!("--user-data-dir={}", profile.display()))
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -196,14 +196,14 @@ fn spawn_ws(
         }
         send!("Page.enable", serde_json::json!({}));
         send!(
+            "Emulation.setFocusEmulationEnabled",
+            serde_json::json!({"enabled": true})
+        );
+        send!(
             "Emulation.setDeviceMetricsOverride",
-            serde_json::json!({"width": size.0, "height": size.1, "deviceScaleFactor": 1, "mobile": false})
+            serde_json::json!({"width": size.0, "height": size.1, "deviceScaleFactor": 0, "mobile": false})
         );
         send!("Page.navigate", serde_json::json!({"url": url}));
-        send!(
-            "Page.startScreencast",
-            serde_json::json!({"format": "jpeg", "quality": 75, "maxWidth": size.0, "maxHeight": size.1, "everyNthFrame": 1})
-        );
 
         let mut pressed = false;
         loop {
@@ -212,6 +212,18 @@ fn spawn_ws(
                     match msg {
                         Some(Ok(Message::Text(text))) => {
                             if let Ok(v) = serde_json::from_str::<serde_json::Value>(&text) {
+                                if v["method"] == "Page.loadEventFired" {
+                                    // Keep the metrics after navigation and start
+                                    // streaming only once the app has loaded.
+                                    send!(
+                                        "Emulation.setDeviceMetricsOverride",
+                                        serde_json::json!({"width": size.0, "height": size.1, "deviceScaleFactor": 0, "mobile": false})
+                                    );
+                                    send!(
+                                        "Page.startScreencast",
+                                        serde_json::json!({"format": "jpeg", "quality": 75, "maxWidth": size.0, "maxHeight": size.1, "everyNthFrame": 1})
+                                    );
+                                }
                                 if v["method"] == "Page.screencastFrame" {
                                     let data = v["params"]["data"].as_str().unwrap_or("");
                                     if let Some(session) = v["params"]["sessionId"].as_i64() {
@@ -263,17 +275,6 @@ fn spawn_ws(
                         WebInput::Eval(expression) => {
                             send!("Runtime.evaluate", serde_json::json!({"expression": expression}));
                         }
-                        WebInput::Viewport { width, height } => {
-                            send!("Page.stopScreencast", serde_json::json!({}));
-                            send!(
-                                "Emulation.setDeviceMetricsOverride",
-                                serde_json::json!({"width": width, "height": height, "deviceScaleFactor": 1, "mobile": false})
-                            );
-                            send!(
-                                "Page.startScreencast",
-                                serde_json::json!({"format": "jpeg", "quality": 75, "maxWidth": width, "maxHeight": height, "everyNthFrame": 1})
-                            );
-                        }
                     }
                 }
             }
@@ -301,14 +302,10 @@ impl Web {
             wait_for_url(url, Duration::from_secs(90))?;
         }
 
-        let (cols, rows) = crossterm::terminal::size().unwrap_or((80, 24));
-        let (cw, ch) = crate::terminal::rex_cell_size().unwrap_or((8, 16));
-        let area_w = (cols as usize * cw).max(1);
-        let area_h = (rows.saturating_sub(1) as usize * ch).max(1);
-        let width = area_w.clamp(320, 1280);
-        let height =
-            ((width as f64 * area_h as f64 / area_w as f64).round() as usize).clamp(240, 1600);
-        let size = (width, height);
+        // The NSH web host needs a wide viewport; a tall, narrow one fails to
+        // load its browser facade. Keep a desktop-sized 1280x800 window and let
+        // the terminal letterbox it.
+        let size = (1280, 800);
 
         let profile = PathBuf::from(format!("/tmp/multi-simu-chrome-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&profile);
@@ -418,19 +415,8 @@ impl Target for Web {
         self.send(WebInput::Key { key, code, vk });
     }
 
-    fn resize(&mut self, width: usize, height: usize) {
-        if width == 0 || height == 0 {
-            return;
-        }
-        let vw = width.clamp(320, 1280);
-        let vh = ((height as f64 * vw as f64 / width as f64).round() as usize).clamp(240, 1600);
-        if (vw, vh) != self.size {
-            self.size = (vw, vh);
-            self.send(WebInput::Viewport {
-                width: vw,
-                height: vh,
-            });
-        }
+    fn resize(&mut self, _width: usize, _height: usize) {
+        // The browser window keeps the size it was created with.
     }
 
     fn shutdown(&mut self) {

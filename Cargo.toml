@@ -1,6 +1,6 @@
 [package]
 name = "multi-simu"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Show and drive iOS simulators, Android emulators and web pages inside any terminal."
 license = "MIT OR Apache-2.0"
