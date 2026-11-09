@@ -1,3 +1,5 @@
+[![CI](https://github.com/Laotree/multi-simu-plugin/actions/workflows/ci.yml/badge.svg)](https://github.com/Laotree/multi-simu-plugin/actions/workflows/ci.yml)
+
 # multi-simu
 
 **Terminal-native preview and control for iOS simulators, Android emulators,
