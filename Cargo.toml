@@ -10,7 +10,7 @@ homepage = "https://github.com/Laotree/multi-simu-plugin"
 readme = "README.md"
 keywords = ["simulator", "emulator", "terminal", "ios", "android"]
 categories = ["development-tools", "command-line-utilities"]
-exclude = ["tools/ios-probe", "examples/onley.toml"]
+exclude = ["tools/ios-probe", "examples/local.toml"]
 
 [[bin]]
 name = "multi-simu"
