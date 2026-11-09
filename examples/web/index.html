@@ -1,0 +1,18 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>multi-simu web</title>
+<style>
+body{font-family:system-ui;background:#f2ede4;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;gap:24px}
+.counter{font-size:72px;font-weight:800}
+button{font-size:24px;padding:14px 28px;border:2px solid #111;background:#ff2fa0;color:#111;font-weight:700}
+input{font-size:20px;padding:10px 14px;border:2px solid #111;width:280px}
+</style></head>
+<body>
+<div class="counter" id="c">0</div>
+<button id="b">Tap me</button>
+<input id="i" placeholder="type here">
+<script>
+const c=document.getElementById('c');
+document.getElementById('b').onclick=()=>{c.textContent=+c.textContent+1;document.title='count='+c.textContent};
+document.getElementById('i').oninput=e=>{document.title='typed='+e.target.value};
+</script>
+</body></html>

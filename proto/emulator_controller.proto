@@ -1,0 +1,50 @@
+// Derived from the Android Open Source Project's emulator_controller.proto.
+// Copyright (C) 2018 The Android Open Source Project
+// Licensed under the Apache License, Version 2.0.
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+syntax = "proto3";
+
+// The subset of the Android emulator gRPC API that multi-simu uses. Field
+// numbers must match $ANDROID_HOME/emulator/lib/emulator_controller.proto.
+package android.emulation.control;
+
+service EmulatorController {
+  rpc getScreenshot(ImageFormat) returns (Image);
+  rpc streamScreenshot(ImageFormat) returns (stream Image);
+  rpc sendTouch(TouchEvent) returns (Empty);
+  rpc sendKey(KeyboardEvent) returns (Empty);
+}
+
+message Empty {}
+
+message ImageFormat {
+  int32 format = 1;
+  uint32 width = 3;
+  uint32 height = 4;
+  uint32 display = 5;
+}
+
+message Image {
+  ImageFormat format = 1;
+  bytes image = 4;
+  uint32 seq = 5;
+}
+
+message TouchEvent {
+  repeated Touch touches = 1;
+  int32 display = 2;
+}
+
+message Touch {
+  int32 x = 1;
+  int32 y = 2;
+  int32 identifier = 3;
+  int32 pressure = 4;
+}
+
+message KeyboardEvent {
+  int32 codeType = 1;
+  int32 eventType = 2;
+  int32 keyCode = 3;
+}

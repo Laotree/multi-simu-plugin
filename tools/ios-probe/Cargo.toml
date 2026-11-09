@@ -1,0 +1,14 @@
+[package]
+name = "ios-probe"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+objc2 = { version = "0.6", features = ["exception"] }
+objc2-foundation = "0.3"
+block2 = "0.6"
+image = { version = "0.25", default-features = false, features = ["png"] }
+libc = "0.2"
+
+[profile.dev]
+opt-level = 1

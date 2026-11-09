@@ -1,0 +1,17 @@
+[project]
+root = ".."
+
+[targets.ios]
+adapter = "ios"
+device = "iPhone 17"          # replace with: xcrun simctl list devices
+# build = "your iOS build and install command"
+
+[targets.android]
+adapter = "android"
+device = "avd:Your_AVD"       # replace with: emulator -list-avds
+# build = "your Android build, install, and launch command"
+
+[targets.web]
+adapter = "web"
+url = "http://127.0.0.1:8080"
+command = "python3 -m http.server 8080 --directory examples/web"

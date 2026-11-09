@@ -1,0 +1,14 @@
+multi-simu-plugin
+Copyright 2026 The multi-simu-plugin Authors
+
+This product includes protocol definitions derived from the Android Open
+Source Project (emulator_controller.proto), which is licensed under the
+Apache License, Version 2.0:
+
+  Copyright (C) 2018 The Android Open Source Project
+  Licensed under the Apache License, Version 2.0
+  http://www.apache.org/licenses/LICENSE-2.0
+
+The iOS adapter calls Apple's CoreSimulator and SimulatorKit private
+frameworks at runtime. No Apple binaries or frameworks are distributed with
+this project.
